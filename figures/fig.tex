@@ -1,0 +1,100 @@
+\section*{Reading Guide}\label{sec:reading_guide}
+\begin{center}\small
+\begin{tikzpicture}
+    [auto,
+     decision/.style={diamond, draw=blue, thick, fill=blue!10,
+                      text width=4.5em,align=flush center,
+                      inner sep=1pt},
+    block/.style ={rectangle, draw=blue, thick, fill=blue!10,
+                    text width=7em,align=center, rounded corners,
+                    minimum height=4em},
+    line/.style ={draw, thick, -latex,shorten >=2pt},
+    cloud/.style ={draw=red, thick, ellipse,fill=red!10,
+                   minimum height=2em}]
+       
+  \matrix [column sep=16mm,row sep=7mm]
+  {
+  % row 1
+    &  \node [block] (why) {Federated Learning Challenges}; &
+    \node [cloud, align=center] (motivation) {Sec: \ref{sec:intro} \\Fig: \ref{fig:illustration}}; \\
+  % row 2
+      & \node [block] (client drift) {Client Drift: Multiple Local Updates}; & 
+      \node [cloud,align=center] (client) {Sec: \ref{sec:intro}, \ref{sec:fedavg} \\Assum: \ref{assum:drift}, \ref{assum:wqr} \\Appx: \ref{appdx:concept}, \ref{appdx:analogy}}; \\
+  % row 3
+      & \node [block] (period drift) {Period Drift: Partial Client Participation}; & 
+      \node [cloud,align=center] (period) {Sec: \ref{sec:intro}, \ref{sec:fedavg} \\Assum: \ref{assum:drift}, \ref{assum:wqr} \\Fig: \ref{fig:illustration}, \ref{fig:visualize} \\Appx: \ref{appdx:concept}, \ref{appdx:analogy}}; \\
+  % row 4
+    & \node [block] (noise) {Impact Analysis: Drifts as Noises};  &
+      \node [cloud,align=center] (noise harm) {Sec: \ref{sec:impact} \\Assum: \ref{assum:drift}, \ref{def:drifts} \\Fig: \ref{fig:visualize} \\Appx: \ref{appdx:noise}, \ref{sec:assum1_just}}; \\
+  % row 5
+  & \node [block] (framework) {Predict-Observe Framework};  &
+  \node [cloud,align=center] (framework_sec) {Sec: \ref{sec:method} \\Lemma: \ref{lemma:independence_noise} \\Theorem: \ref{theorem:fused} \\Appx: \ref{appdx:bayesian}}; \\
+  % row 6
+  & \node [decision] (fuse) {\fedeve: Bayesian Filter Solution};  &
+  \node [cloud,align=center] (method) {Sec: \ref{sec:method} \\Fig: \ref{fig:filter}, \ref{fig:algo} \\Appx: \ref{appdx:bayesian}}; \\
+  % row 7
+  & \node [block] (results) {Experimental Validation};  &
+  \node [cloud,align=center] (exp) {Sec: \ref{sec:exp_setup}, \ref{ex_period} \\Tables: \ref{tab:femnist_cifar100}, \ref{tab:ml-1m}, \ref{tab:femnist}}; \\
+  % row 8
+  & \node [block] (conclusion) {Contributions \& Conclusion};  &
+  \node [cloud,align=center] (conc) {Sec: \ref{sec:intro} (last part) \\Sec: \ref{sec:exp_setup} (summary)}; \\
+  };
+  \begin{scope}[every path/.style=line]
+      \path (why) --node[midway, above] {Background} (motivation);
+      \path (why) --node[midway,right]{First Challenge} (client drift);
+      \path (client drift) --node[midway,above]{Data Heterogeneity} (client);
+      \path (client drift) --node[midway,below]{Issue} (client);
+      \path (client drift) --node[midway,right]{Second Challenge} (period drift);
+      \path (period drift) --node[midway,above]{Cross-Device} (period);
+      \path (period drift) --node[midway,below]{Setting} (period);
+      \path (period drift) --node[midway,right]{Analysis} (noise);
+      \path (noise) --node[midway,above]{Theoretical} (noise harm);
+      \path (noise) --node[midway,below]{Understanding} (noise harm);
+      \path (noise) --node[midway,right]{Solution Approach} (framework);
+      \path (framework) --node[midway,above]{Integrated} (framework_sec);
+      \path (framework) --node[midway,below]{Method} (framework_sec);
+      \path (framework) --node[midway,right]{Implementation} (fuse);
+      \path (fuse) --node[midway,above]{Variance} (method);
+      \path (fuse) --node[midway,below]{Reduction} (method);
+      \path (fuse) --node[midway,right]{Evaluation} (results);
+      \path (results) --node[midway,above]{Performance} (exp);
+      \path (results) --node[midway,below]{Comparisons} (exp);
+      \path (results) --node[midway,right]{Summary} (conclusion);
+      \path (conclusion) --node[midway,above]{Key} (conc);
+      \path (conclusion) --node[midway,below]{Insights} (conc);
+    \end{scope}
+  \end{tikzpicture}
+\end{center}
+
+\vspace{10mm}
+This reading guide provides a comprehensive roadmap to navigate through our paper on addressing the challenges in Federated Learning (FL).
+
+We begin by introducing the fundamental challenges of FL in Section \ref{sec:intro}, illustrated in Figure \ref{fig:illustration}. Here, we identify two critical issues: Client Drift and Period Drift.
+
+Client Drift occurs due to multiple local updates and data heterogeneity, detailed in Sections \ref{sec:intro} and \ref{sec:fedavg}. This concept is formalized in Assumptions \ref{assum:drift} and \ref{assum:wqr}, with further explanations in Appendices \ref{appdx:concept} and \ref{appdx:analogy}.
+
+Period Drift, a less studied but equally important challenge, arises from partial client participation in cross-device settings. This phenomenon is thoroughly discussed in Sections \ref{sec:intro} and \ref{sec:fedavg}, visually represented in Figures \ref{fig:illustration} and \ref{fig:visualize}, and conceptually explained in Appendices \ref{appdx:concept} and \ref{appdx:analogy}.
+
+The impact of these drifts on FL performance is analyzed in Section \ref{sec:impact}, where we formally define them in Definition \ref{def:drifts} and model them as noise under Assumption \ref{assum:drift}. The detrimental effects are visualized in Figure \ref{fig:visualize}, with additional theoretical analysis in Appendix \ref{appdx:noise} and justification of the noise assumption in Appendix \ref{sec:assum1_just}.
+
+To address these challenges, we propose a Predict-Observe Framework in Section \ref{sec:method}. This framework leverages Lemma \ref{lemma:independence_noise} and Theorem \ref{theorem:fused} to establish a principled approach for integrating predictions and observations, with detailed Bayesian derivations in Appendix \ref{appdx:bayesian}.
+
+Our specific solution, \fedeve, implements this framework using a Bayesian filter. The methodology is presented in Section \ref{sec:method} with illustrations in Figures \ref{fig:filter} and \ref{fig:algo}, demonstrating how it achieves variance reduction through the fusion of predictions and observations.
+
+We validate our approach through extensive experiments in Sections \ref{sec:exp_setup} and \ref{ex_period}. The results, presented in Tables \ref{tab:femnist_cifar100}, \ref{tab:ml-1m}, and \ref{tab:femnist}, demonstrate that \fedeve consistently outperforms state-of-the-art methods, particularly in highly heterogeneous settings.
+
+The paper concludes by summarizing our key contributions in the final part of Section \ref{sec:intro} and providing a comprehensive overview of our findings in Section \ref{sec:exp_setup}.
+
+This guide is designed to facilitate a clear understanding of our research, highlighting the logical progression from identifying challenges to proposing and validating solutions in the context of Federated Learning.
+
+\newpage
+ 
+ 
+
+
+
+
+
+
+
+    

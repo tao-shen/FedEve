@@ -1,0 +1,72 @@
+\usepackage{wrapfig}
+% my configurations
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{subfigure}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usetikzlibrary{tikzmark}
+
+\usetikzlibrary{shapes,arrows}
+\definecolor{Gray}{gray}{0.9}
+\definecolor{PeriodDriftColor}{HTML}{CF96B0}
+\definecolor{ClientDriftColor}{HTML}{929FDA}
+
+\makeatletter
+\def\input@path{{./sections/}{../sections/}{./figures/}{../figures/}{./}{../}}
+\makeatother
+\graphicspath{{./figures/}{../figures/}}
+ 
+\newcommand{\fedavg}{\textsc{FedAvg}~}
+\newcommand{\fedeve}{\textsc{FedEve}~}
+\newcommand{\fedavgm}{\textsc{FedAvgM}~}
+\newcommand{\fedprox}{\textsc{FedProx}~}
+\newcommand{\scaffold}{\textsc{Scaffold}~}
+\newcommand{\fedopt}{\textsc{FedOpt}~}
+\newcommand{\feddf}{\textsc{FedDF}~}
+\newcommand{\fedmeta}{\textsc{FedMeta}~}
+\newcommand{\fedleo}{\textsc{FedLeo}~}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREMS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+% \newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+% \newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+% \theoremstyle{remark}
+% \newtheorem{remark}[theorem]{Remark}
+
+ 
+\setlength{\parskip}{2.5pt plus3pt minus3pt}
+% 1.2pt：基础段落间距为 1.2 点（约 0.42 毫米）。
+% plus3pt：允许 LaTeX 在排版需要时增加最多 3pt 的弹性间距（例如避免页面底部留白过多）。
+% minus2.5pt：允许 LaTeX 在排版需要时减少最多 2.5pt 的弹性间距（例如避免内容被截断）。
+% \setlength{\textfloatsep}{3pt plus2pt minus2pt} % 顶部/底部浮动体
+% \setlength{\intextsep}{3pt plus2pt minus2pt}      % 中间浮动体
+% 减少图表与上下文的间距（例如设为 10pt + 弹性值）
+
+% 调整图片标题与内容的间距
+% \setlength{\abovecaptionskip}{-10pt}  % 标题上方间距
+% \setlength{\belowcaptionskip}{-10pt}   % 标题下方间距
+
+% % 调整表格标题与内容的间距（表格标题通常在表格上方）
+% \setlength{\abovecaptionskip}{-10pt}   % 表格标题上方间距
+% \setlength{\belowcaptionskip}{-10pt}   % 表格标题下方间距

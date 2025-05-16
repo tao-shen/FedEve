@@ -1,0 +1,178 @@
+\newpage
+\section{Generalization bound}
+This Generalization bound is inspired by \citet{sun2023understanding}.
+\subsection{Theorems}
+% Based on Algorithmic stability:
+
+\begin{theorem}[On-average Algorithmic Stability] \label{thm_stability-gen}
+    Suppose a federated learning algorithm $\mathcal{A}$ is $\epsilon$-on-averagely stable. Then,
+    \begin{align*}
+        \epsilon_{gen} \le \mathbb{E}_{\mathcal{A, S}} \left[ \left| f(\mathcal{A(S)}) - \hat{f}_{\mathcal{S}}(\mathcal{A(S)}) \right| \right] \le \epsilon.
+    \end{align*}
+\end{theorem}
+
+\begin{theorem}[Generalization Bound] \label{thm_gen-FedEve}
+    Suppose Assumptions \ref{assump_Lip-continuous}-\ref{asp:bounded-grad} hold and $\eta_l \le \frac{1}{L_m K(t+1)}$. Then, 
+    \begin{align*}    
+        \epsilon_{gen} \le \mathcal{O}\left( \frac{L_p}{nL_m} \right) \left[ T (\sigma_{l} + \sigma_{g}) + \sqrt{T L_m \Delta_0} + T \sqrt{\frac{G_{kal}^2 \sigma^2}{S}} \right].
+    \end{align*}
+\end{theorem}
+
+\subsection{Assumptions}
+\begin{assumption}[Lipschitz Continuity]  \label{assump_Lip-continuous}
+    The loss function $l(\cdot, z)$ is $L_p$-Lipschitz continous, that is,
+    $|l(w; z) - l(w'; z) | \le L_p \Vert w - w' \Vert$, and is  
+    $L_m$-smooth for any $z$, that is, 
+    $\Vert \nabla l(w; z) - \nabla l(w';z) \Vert \le L_m \Vert w - w' \Vert$
+    for any $z, w, w'$.
+\end{assumption}
+
+\begin{assumption}[Bounded Variance]
+    The function $F_i$ have $\sigma_l$-bounded (local) variance i.e., 
+    $\mathbb{E}\|f_i(w) - \nabla f_i(w)\| \leq \sigma_{l}$ for all $w \in \mathbb{f}^d$, $j \in [d]$ and $i \in [m]$. Furthermore, we assume the (global) variance is bounded,
+    $\mathbb{E}\|f_i(w) - \nabla f(w)\| \leq \sigma_{g}$
+    for all $x \in \mathbb{f}^d$ and $j \in [d]$.
+    \label{asp:variance}
+\end{assumption}
+    
+\begin{assumption}[Bounded Gradients]
+    The function $f_i(x,z)$ have $G$-bounded gradients i.e., for any $i \in [m]$, $x \in \mathbb{f}^d$ and $z \in \mathcal{Z}$ we have $|[\nabla f_i(x,z)]_j| \leq G $ for all $j \in [d]$.
+    \label{asp:bounded-grad}
+\end{assumption}
+
+\subsection{Lemmas}
+
+\begin{lemma}[Bounded Local Updates]\label{lem:bound-local-updates}
+    Suppose Assumptions \ref{assump_Lip-continuous}-\ref{asp:bounded-grad} hold. For any step-size, we
+    can bound the local updates as
+    \begin{align}
+        \mathbb{E}\Vert w_{i,k} - w_t \Vert
+        \le \frac{(1 + \eta_l L_m)^k-1}{L_m} \left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right). \nonumber
+    \end{align}
+    where $w_{i,k}$ is the model parameters of client $i$ at $k$-th local updates.
+\end{lemma}
+
+\begin{lemma}[Bounded Local Gradients]   \label{lem:bound-local-gradients}
+    Given Assumptions \ref{assump_Lip-continuous}-\ref{asp:bounded-grad}. For any step-size, we
+    can bound the local gradients as
+    $
+        \mathbb{E}\Vert f_i(w_{i,k}) \Vert \le (1 + \eta_l L_m)^k\left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right),
+    $
+    where $f_i(\cdot)$ is the sampled gradient of client $i$.
+\end{lemma}
+
+\begin{lemma}[Bounded Global Model with Sample Perturbation]   \label{lem:bound-global-updates}
+    Given Assumptions \ref{assump_Lip-continuous}-\ref{asp:bounded-grad}. For any step-size, we
+    can bound the local gradients as
+    $
+    \mathbb{E}\Vert w_T - w'_T \Vert \le \sum_{t=0}^{T-1} \frac{2e^{\eta_lK(t+1) L_m}}{n L_m}\left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right),
+    $
+    where $w'_T$ is the model parameters with sample perturbation at $T$-th communication rounds.
+\end{lemma}
+
+\subsection{Proofs}
+\subsubsection{Proof of Lemma \ref{lem:bound-local-updates}}
+\begin{proof}
+    Bounding Local Updates:
+    \begin{eqnarray}
+        &\mathbb{E}&\Vert w_{i,k+1} - w_t \Vert \nonumber   \\
+        &=& \mathbb{E} \Vert w_{i,k} - \eta_l f_i(w_{i,k}) - w_t \Vert   \nonumber   \\
+        &\le& \mathbb{E}\Vert w_{i,k} - w_t - \eta_l (f_i(w_{i,k}) - f_i(w_t))  \Vert + \eta_l\mathbb{E}\Vert f_i(w_t) \Vert   \nonumber   \\
+        &\le& (1 + \eta_l L_m )\mathbb{E}\Vert w_{i,k} - w_t \Vert + \eta_l\mathbb{E}\Vert f_i(w_t) \Vert    \nonumber   \\
+        &\le& (1 + \eta_l L_m )\mathbb{E}\Vert w_{i,k} - w_t \Vert + \eta_l(\mathbb{E}\Vert f_i(w_t) - \nabla f_i(w_t) \Vert + \mathbb{E}\Vert \nabla f_i(w_t) -\nabla f(w_t) \Vert + \mathbb{E}\Vert \nabla f(w_t) \Vert)   \nonumber   \\
+        &\le& (1 + \eta_l L_m )\mathbb{E}\Vert w_{i,k} - w_t \Vert + \eta_l( \sigma_{l} + \sigma_{g}+\mathbb{E}\Vert \nabla f(w_t) \Vert),    \nonumber
+    \end{eqnarray}
+    unrolling the above and noting $w_{i,0} = w_t$ yields
+    \begin{eqnarray}
+        \mathbb{E}\Vert w_{i,k} - w_t \Vert
+        &\le& \frac{(1 + \eta_l L_m)^k-1}{L_m} \left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right). \nonumber 
+    \end{eqnarray}
+\end{proof}
+
+\subsubsection{Proof of Lemma \ref{lem:bound-local-gradients}}
+\begin{proof}
+    Bounding Local Gradients:
+    \begin{eqnarray}
+        \mathbb{E} \Vert f_i(w_{i,k}) \Vert 
+        &=& \mathbb{E}\Vert f_i(w_{i,k}) - \nabla f_i(w_{i,k}) + \nabla f_i(w_{i,k}) -\nabla f(w_t)  + \nabla f(w_t) \Vert  \nonumber\\
+        &\le& \mathbb{E}\Vert f_i(w_{i,k}) - \nabla f_i(w_{i,k}) \Vert + \mathbb{E}\Vert \nabla f_i(w_{i,k}) -\nabla f(w_t) \Vert + \mathbb{E}\Vert \nabla f(w_t) \Vert  \nonumber\\
+        &\le& \sigma_{l} + L_m \mathbb{E}\Vert w_{i,k} - w_t \Vert + \mathbb{E}\Vert \nabla f(w_t) , \nonumber   \\
+        \text{based on Lemma \ref{lem:bound-local-updates}, we obtain:}\nonumber\\
+        &\le& \sigma_{l}+ \mathbb{E}\Vert \nabla f(w_t)\nonumber\\
+        &+& ((1 + \eta_l L_m)^k-1) \left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right)   \nonumber   \\
+        &\le& (1 + \eta_l L_m)^k\left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right).  \nonumber  
+    \end{eqnarray}
+\end{proof}
+
+\subsubsection{Proof of Lemma \ref{lem:bound-global-updates}}
+\begin{proof}
+    Given time index $t$ and for client $j$ with $j \ne i$, we have
+    \begin{eqnarray}
+        \mathbb{E}\Vert w_{j,k+1} - w'_{j,k+1}\Vert &=& \mathbb{E}\Vert w_{j,k} - w'_{j,k} - \eta_l(g_j(w_{j,k}) - g_j(w'_{j,k})) \Vert   \nonumber   \\
+        &\le& (1 + \eta_l L_m )\mathbb{E}\Vert w_{j,k} - w'_{j,k} \Vert .   \nonumber
+    \end{eqnarray}
+    And unrolling it gives
+    \begin{eqnarray}    \label{eq:jnoti}
+        \mathbb{E}\Vert w_{j,K} - w'_{j,K} \Vert &\le& e^{\eta_l KL_m}\mathbb{E}\Vert w_t - w'_t\Vert , ~~ \forall j \ne i, \nonumber
+    \end{eqnarray}
+    since $1+x<e^x$.
+    For client $i$, there are two cases to consider. In the first case, SGD selects non-perturbed samples in $\mathcal{S}$ and $\mathcal{S}^{(i)}$, which happens with probability $1 - 1/n_i$. Then, we have
+    $
+        \Vert w_{i,k+1} - w'_{i,k+1} \Vert \le (1 + \eta_l L_m ) \Vert w_{i,k} - w'_{i,k} \Vert.
+    $
+    In the second case, SGD encounters the perturbed sample at time step $k$, which happens with probability $1/n_i$. Then, we have
+    \begin{eqnarray}
+        \Vert w_{i,k+1} - w'_{i,k+1} \Vert &=& \Vert w_{i,k} - w'_{i,k} - \eta_l(f_i(w_{i,k}) - g'_i(w'_{i,k})) \Vert   \nonumber   \\
+        &\le& \Vert w_{i,k} - w'_{i,k} - \eta_l(f_i(w_{i,k}) - f_i(w'_{i,k})) \Vert + \eta_l\Vert f_i(w'_{i,k}) - g'_i(w'_{i,k}) \Vert    \nonumber   \\
+        &\le& (1 + \eta_l L_m )\Vert w_{i,k} - w'_{i,k} \Vert + \eta_l\Vert f_i(w'_{i,k}) - g'_i(w'_{i,k}) \Vert .  \nonumber
+    \end{eqnarray}
+    Combining these two cases for client $i$ we have
+    \begin{eqnarray}
+        \mathbb{E}\Vert w_{i,k+1} - w'_{i,k+1} \Vert &\le& (1 + \eta_l L_m )\mathbb{E}\Vert w_{i,k} - w'_{i,k} \Vert + \frac{\eta_l}{n_i}\mathbb{E}\Vert f_i(w'_{i,k}) - g'_i(w'_{i,k}) \Vert    \nonumber   \\
+        &\le& (1 + \eta_l L_m )\mathbb{E}\Vert w_{i,k} - w'_{i,k} \Vert + \frac{2\eta_l}{n_i}\mathbb{E}\Vert f_i(w_{i,k}) \Vert,  \nonumber  \\
+        \text{based on Lemma \ref{lem:bound-local-gradients}, we obtain:}\nonumber\\
+        &\le& (1 + \eta_l L_m )\mathbb{E}\Vert w_{i,k} - w'_{i,k} \Vert \nonumber\\
+        &+& \frac{2\eta_l}{n_i}e^{\eta_l kL_m}\left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right),   \nonumber
+    \end{eqnarray}
+    then unrolling it gives
+    \begin{eqnarray}    \label{eq:jisi}
+        &\mathbb{E}&\Vert w_{i,K} - w'_{i,K} \Vert \nonumber\\
+        &\le& e^{\eta_l KL_m}\mathbb{E}\Vert w_t - w'_t \Vert \nonumber\\
+        & +& \frac{2e^{\eta_l KL_m}}{n_i L_m}\left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right) ~~ \forall j = i. 
+    \end{eqnarray}
+    Combines \ref{eq:jnoti} and \ref{eq:jisi} we have
+    \begin{eqnarray}
+        \mathbb{E}\Vert w_{t+1} - w'_{t+1} \Vert 
+        &\le& \sum_{i=1}^m p_i \mathbb{E}\Vert w_{i,K} - w'_{i,K} \Vert  \nonumber \\
+        &\le& e^{\eta_l KL_m}\mathbb{E}\Vert w_t - w'_t \Vert+\frac{2e^{\eta_l KL_m}}{n L_m}\left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right) \nonumber
+    \end{eqnarray}
+    where we also use $p_i = n_i/n$ in the last step. Further, unrolling the above over $t$ and noting $w_0 = w'_0$, we obtain
+    \begin{eqnarray}
+        \mathbb{E}\Vert w_T - w'_T \Vert \le \sum_{t=0}^{T-1} \frac{2e^{\eta_lK(t+1) L_m}}{n L_m}\left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right).  \nonumber
+    \end{eqnarray}
+\end{proof}
+
+\subsubsection{Proof of Theorem \ref{thm_gen-FedEve}}
+\begin{proof}
+    According to the fact that:
+\begin{equation}    \label{eq_Jensen}
+    \left(\sum_{t=0}^{T-1}  \mathbb{E}\Vert \nabla f(w_t) \Vert \right)^2 \le T \sum_{t=0}^{T-1}  \big(\mathbb{E}\Vert \nabla f(w_t) \Vert\big)^2 \le T \sum_{t=0}^{T-1}  \mathbb{E}\Vert \nabla f(w_t) \Vert^2, \nonumber
+\end{equation}
+where the second inequality follows Jensen's inequality, and the convergence analysis of FedEve:
+    \begin{eqnarray}    
+        \frac{1}{T}\sum_{r=0}^{T-1}\mathbb{E}\|\nabla f(w_t)\|^2
+        \leq \mathcal{O}\left(\frac{L_m\Delta_0}{T} + \frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)\right), \nonumber
+    \end{eqnarray}
+where $\Delta_0 := \mathbb{E}[f(w_0) - f(w^*)]$. The generalization bound is
+\begin{eqnarray}   
+    \epsilon_{gen} 
+    &\le&  L_p \mathbb{E}\Vert w_T - w'_T \Vert \nonumber\\
+    &\le&  L_p \sum_{t=0}^{T-1} \frac{2e^{\eta_lK(t+1) L_m}}{n L_m}\left( \mathbb{E}\Vert \nabla f(w_t) \Vert +\sigma_{l} + \sigma_{g} \right),\nonumber\\
+    \text{when $\eta_l<\tfrac{1}{K(t+1) L_m}$, we obtain:}\nonumber\\
+    &\le& L_p \sum_{t=0}^{T-1} \frac{2e^{\eta_lK(t+1) L_m}}{n L_m} \left( \sqrt{T \sum_{t=0}^{T-1}  \mathbb{E}\Vert \nabla f(w_t) \Vert^2} + T (\sigma_{l} + \sigma_{g}) \right),\nonumber\\
+    &\le& L_p \sum_{t=0}^{T-1} \frac{2e^{\eta_lK(t+1) L_m}}{n L_m} \left( \sqrt{T \mathcal{O}\left(\frac{L_m \Delta_0}{T} + \frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)\right)} + T (\sigma_{l} + \sigma_{g}) \right),\nonumber\\
+    &\le& L_p \sum_{t=0}^{T-1} \frac{2e^{\eta_lK(t+1) L_m}}{n L_m} \left( \sqrt{L_m \Delta_0 + T \frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)} + T (\sigma_{l} + \sigma_{g}) \right),\nonumber\\
+    &\le& L_p \sum_{t=0}^{T-1} \frac{2e^{\eta_lK(t+1) L_m}}{n L_m} \left( \sqrt{L_m \Delta_0} + \sqrt{T \frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)} + T (\sigma_{l} + \sigma_{g}) \right),\nonumber\\
+    &\le& \mathcal{O}\left( \frac{L_p}{nL_m} \right) \left[ T (\sigma_{l} + \sigma_{g}) + \sqrt{T L_m \Delta_0} + T \sqrt{\frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)} \right]. \nonumber
+\end{eqnarray}
+\end{proof}

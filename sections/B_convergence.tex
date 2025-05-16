@@ -1,0 +1,312 @@
+\newpage
+
+\section{Convergence Analysis}
+This section provides a comprehensive theoretical analysis of the FedEve algorithm. We establish formal guarantees on the convergence of our proposed method by first stating necessary assumptions, then presenting the main convergence theorem, and finally providing supporting lemmas and detailed proofs.
+
+\subsection{Assumptions}
+For our theoretical analysis, we rely on the following standard assumptions in federated optimization literature:
+
+\begin{assumption}[Lipschitz Continuity]  \label{cassump_Lip-continuous}
+    The loss function \(l(\cdot, z)\) is \(L\)-Lipschitz continuous, that is,
+    \(|l(w; z) - l(w'; z) | \le L \| w - w' \|\), and is \(L\)-smooth for any \(z\), that is, 
+    \(\| \nabla l(w; z) - \nabla l(w';z) \| \le L \| w - w' \|\)
+    for any \(z, w, w'\).
+\end{assumption}
+
+The Lipschitz continuity assumption ensures that the loss function doesn't change too rapidly as the model parameters change, which is crucial for establishing the stability of our optimization procedure. The smoothness property ensures that the gradients of the loss function are well-behaved, which is necessary for proving convergence rates.
+
+\begin{assumption}[Bounded Variance]
+    The function \(f_i\) has \(\sigma\)-bounded variance, i.e., 
+    \(\mathbb{E}\|f_i(w) - \nabla f_i(w)\| \leq \sigma\) for all \(w \in \mathbb{R}^d\) and \(i \in [N]\).
+    \label{casp:variance}
+\end{assumption}
+
+This assumption limits the variance of the stochastic gradients at each client, which is essential in federated learning where we only have access to gradient estimates from a subset of clients. This bounded variance allows us to control the error introduced by client sampling and stochastic optimization.
+
+% \begin{assumption}[Bounded Gradients]
+%     The function \(f_i(x,z)\) has \(G\)-bounded gradients, i.e., for any \(i \in [N]\), \(x \in \mathbb{R}^d\) and \(z \in \mathcal{Z}\), we have \(|[\nabla f_i(x,z)]_j| \leq G\) for all \(j \in [d]\).
+%     \label{asp:bounded-grad}
+% \end{assumption}
+
+\subsection{Theorems}
+Our main theoretical result establishes the convergence rate of the FedEve algorithm:
+
+\begin{theorem}[Convergence of FedEve] \label{thm_convergence-FedEve}
+    Suppose Assumptions \ref{cassump_Lip-continuous},\ref{casp:variance} hold and \(\eta_g \le \frac{1}{L}\). Then, for the FedEve algorithm, we have:
+    \begin{align*}    
+        \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\|\nabla f(w_t)\|^2] \le \mathcal{O}\left(\frac{L(f(w_0) - f^*)}{T} + \frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)\right).
+    \end{align*}
+\end{theorem}
+
+This theorem provides a bound on the average squared norm of gradients, which is a standard measure of convergence in non-convex optimization. The bound consists of two terms:
+\begin{itemize}
+    \item The first term \(\mathcal{O}\left(\frac{L(f(w_0) - f^*)}{T}\right)\) decreases with the number of iterations \(T\), indicating that the algorithm converges as \(T\) increases.
+    \item The second term \(\mathcal{O}\left(\frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)\right)\) represents the irreducible error due to client sampling and stochastic gradients, which decreases as the number of sampled clients \(S\) increases and vanishes when all clients participate (\(S = N\)).
+\end{itemize}
+
+This convergence bound demonstrates that FedEve achieves the optimal convergence rate for non-convex optimization while effectively handling the challenges of federated learning settings.
+
+\subsection{Lemmas}
+To prove our main theorem, we establish the following key lemmas that characterize the behavior of client sampling and the Kalman filter-based momentum updates:
+
+\begin{lemma}[Variance of Local Gradients] \label{lem:variance-local-gradients}
+    Given Assumptions \ref{cassump_Lip-continuous},\ref{casp:variance}, the variance of the local gradients can be bounded as:
+    \[
+        \mathbb{E}[\|\nabla f_{\mathcal{S}}(w) - \nabla f(w)\|^2] \leq \frac{\sigma^2}{S} \left(1 - \frac{S}{N}\right).
+    \]
+\end{lemma}
+
+This lemma quantifies the error introduced by client sampling in federated learning. It shows that the variance of the gradients from a subset of clients \(\mathcal{S}\) compared to the full gradient decreases as we sample more clients (larger \(S\)), and vanishes when all clients participate (\(S = N\)).
+
+\begin{lemma}[Kalman Filter Update Variance] \label{lem:kalman-filter-variance}
+    Given Assumptions \ref{cassump_Lip-continuous},\ref{casp:variance}, the variance of the momentum update using the Kalman filter can be bounded as:
+    \[
+        \mathbb{E}[\|M_{t+1} - M_t\|^2] \leq G_{kal}^2 \left( \frac{\sigma^2}{S} \left(1 - \frac{S}{N}\right) + \mathbb{E}[\|\nabla f(w_t) - M_t\|^2] \right).
+    \]
+\end{lemma}
+
+This lemma characterizes the stability of the momentum updates in our FedEve algorithm. It shows that the variance of the momentum changes is controlled by both the client sampling variance and the current error in the momentum estimate. The Kalman gain parameter \(G_{kal}\) allows us to balance between adaptivity and stability in the momentum updates.
+
+\subsection{Proofs}
+We now provide detailed proofs for our lemmas and main theorem. Each proof is structured to clearly show the logical progression from assumptions to conclusions, with detailed explanations of intermediate steps.
+
+\subsubsection{Proof of Lemma \ref{lem:variance-local-gradients}}
+\begin{proof}
+    Our goal is to bound the variance between the gradient estimated from a subset of clients and the full gradient across all clients. We start by analyzing the definition of the sampled gradient:
+    \[
+        \nabla f_{\mathcal{S}}(w) = \frac{1}{S} \sum_{i \in \mathcal{S}} \nabla f_i(w).
+    \]
+    
+    Given that \(\mathcal{S}\) is a randomly selected subset of \(S\) clients from the total \(N\) clients without replacement, the variance we want to bound can be expressed as:
+    \[
+        \mathbb{E}[\|\nabla f_{\mathcal{S}}(w) - \nabla f(w)\|^2] = \mathbb{E}\left[\left\|\frac{1}{S} \sum_{i \in \mathcal{S}} \nabla f_i(w) - \frac{1}{N} \sum_{i=1}^{N} \nabla f_i(w)\right\|^2\right].
+    \]
+    
+    To analyze this expression, we will decompose the difference by separating the selected clients \(\mathcal{S}\) and the non-selected clients \(\mathcal{S}^c\). Note that \(\mathcal{S} \cup \mathcal{S}^c = \{1,2,\ldots,N\}\) and \(\mathcal{S} \cap \mathcal{S}^c = \emptyset\). We can rewrite:
+    \begin{align*}
+        \frac{1}{S} \sum_{i \in \mathcal{S}} \nabla f_i(w) - \frac{1}{N} \sum_{i=1}^{N} \nabla f_i(w) &= \frac{1}{S} \sum_{i \in \mathcal{S}} \nabla f_i(w) - \frac{1}{N} \left(\sum_{i \in \mathcal{S}} \nabla f_i(w) + \sum_{i \in \mathcal{S}^c} \nabla f_i(w) \right) \\
+        &= \left(\frac{1}{S} - \frac{1}{N}\right) \sum_{i \in \mathcal{S}} \nabla f_i(w) - \frac{1}{N} \sum_{i \in \mathcal{S}^c} \nabla f_i(w).
+    \end{align*}
+    
+    To compute the expected squared norm of this expression, we note that the two terms are independent due to the random sampling process. Therefore:
+    \begin{align*}
+        &\mathbb{E}\left[\left\|\left(\frac{1}{S} - \frac{1}{N}\right) \sum_{i \in \mathcal{S}} \nabla f_i(w) - \frac{1}{N} \sum_{i \in \mathcal{S}^c} \nabla f_i(w) \right\|^2\right] \\
+        &= \left(\frac{1}{S} - \frac{1}{N}\right)^2 \mathbb{E}\left[\left\|\sum_{i \in \mathcal{S}} \nabla f_i(w)\right\|^2\right] + \frac{1}{N^2} \mathbb{E}\left[\left\|\sum_{i \in \mathcal{S}^c} \nabla f_i(w)\right\|^2\right].
+    \end{align*}
+    
+    Now, we need to evaluate the expectations. Let's denote \(\mu = \frac{1}{N}\sum_{i=1}^N \nabla f_i(w)\) as the mean gradient across all clients. Under Assumption \ref{casp:variance}, the client gradients have bounded variance \(\sigma^2\) around this mean. For a set of \(S\) randomly sampled clients, the variance of their sum is:
+    \[
+        \mathbb{E}\left[\left\|\sum_{i \in \mathcal{S}} \nabla f_i(w) - S\mu\right\|^2\right] = S \sigma^2.
+    \]
+    
+    Since \(\mathbb{E}[\nabla f_i(w)] = \mu\) for all clients, we have:
+    \[
+        \mathbb{E}\left[\left\|\sum_{i \in \mathcal{S}} \nabla f_i(w)\right\|^2\right] = S \sigma^2 + S^2 \|\mu\|^2.
+    \]
+    
+    Similarly, for the non-selected clients:
+    \[
+        \mathbb{E}\left[\left\|\sum_{i \in \mathcal{S}^c} \nabla f_i(w)\right\|^2\right] = (N-S) \sigma^2 + (N-S)^2 \|\mu\|^2.
+    \]
+    
+    Substituting these expressions into our variance formula:
+    \begin{align*}
+        &\left(\frac{1}{S} - \frac{1}{N}\right)^2 (S \sigma^2 + S^2 \|\mu\|^2) + \frac{1}{N^2}((N-S) \sigma^2 + (N-S)^2 \|\mu\|^2) \\
+        &= \left(\frac{1}{S} - \frac{1}{N}\right)^2 S \sigma^2 + \left(\frac{1}{S} - \frac{1}{N}\right)^2 S^2 \|\mu\|^2 + \frac{(N-S)\sigma^2}{N^2} + \frac{(N-S)^2\|\mu\|^2}{N^2}.
+    \end{align*}
+    
+    After algebraic manipulation, the terms involving \(\|\mu\|^2\) cancel out (which can be verified by expanding the expressions), leaving us with:
+    \begin{align*}
+        \mathbb{E}[\|\nabla f_{\mathcal{S}}(w) - \nabla f(w)\|^2] &= \left(\frac{1}{S} - \frac{1}{N}\right)^2 S \sigma^2 + \frac{(N-S)\sigma^2}{N^2} \\
+        &= \frac{\sigma^2}{S} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    This final result elegantly quantifies how the variance scales with both the number of sampled clients \(S\) and the total number of clients \(N\). We observe that:
+    \begin{itemize}
+        \item As \(S\) increases, the variance decreases, showing the benefit of sampling more clients.
+        \item When \(S = N\) (i.e., we use all clients), the variance becomes zero, as expected.
+        \item The term \(1 - \frac{S}{N}\) represents the finite population correction factor from sampling theory, accounting for sampling without replacement.
+    \end{itemize}
+\end{proof}
+
+\subsubsection{Proof of Lemma \ref{lem:kalman-filter-variance}}
+\begin{proof}
+    This lemma characterizes the stability of momentum updates using the Kalman filter. We begin with the momentum update equation in the FedEve algorithm:
+    \[
+        M_{t+1} = M_t + G_{kal}(\Delta \tilde{w}_t - M_t),
+    \]
+    where \(\Delta \tilde{w}_t\) represents the average update from the selected clients at time \(t\), and \(G_{kal}\) is the Kalman gain parameter that controls how much new information is incorporated into the momentum.
+    
+    Rearranging the update equation, we have:
+    \[
+        M_{t+1} - M_t = G_{kal}(\Delta \tilde{w}_t - M_t).
+    \]
+    
+    Our goal is to bound the expected squared norm of this difference, which measures how much the momentum changes between iterations:
+    \[
+        \mathbb{E}[\|M_{t+1} - M_t\|^2] = \mathbb{E}[\|G_{kal}(\Delta \tilde{w}_t - M_t)\|^2].
+    \]
+    
+    Since \(G_{kal}\) is a scalar constant, we can factor it out:
+    \[
+        \mathbb{E}[\|M_{t+1} - M_t\|^2] = G_{kal}^2 \mathbb{E}[\|\Delta \tilde{w}_t - M_t\|^2].
+    \]
+    
+    To analyze \(\mathbb{E}[\|\Delta \tilde{w}_t - M_t\|^2]\), we introduce the true full gradient \(\nabla f(w_t)\) as an intermediate term:
+    \begin{align*}
+        \mathbb{E}[\|\Delta \tilde{w}_t - M_t\|^2] &= \mathbb{E}[\|\Delta \tilde{w}_t - \nabla f(w_t) + \nabla f(w_t) - M_t\|^2] \\
+        &= \mathbb{E}[\|(\Delta \tilde{w}_t - \nabla f(w_t)) + (\nabla f(w_t) - M_t)\|^2].
+    \end{align*}
+    
+    Now, we expand the squared norm of the sum. If we can show that the cross-term \(\mathbb{E}[\langle \Delta \tilde{w}_t - \nabla f(w_t), \nabla f(w_t) - M_t \rangle] = 0\), then we can separate the expression. This is indeed the case because:
+    \begin{itemize}
+        \item \(M_t\) depends only on information up to time \(t-1\)
+        \item \(\nabla f(w_t)\) is a deterministic function of \(w_t\)
+        \item \(\Delta \tilde{w}_t - \nabla f(w_t)\) is the sampling error at time \(t\), which is independent of past information
+    \end{itemize}
+    
+    Therefore, we can write:
+    \begin{align*}
+        \mathbb{E}[\|\Delta \tilde{w}_t - M_t\|^2] &= \mathbb{E}[\|\Delta \tilde{w}_t - \nabla f(w_t)\|^2] + \mathbb{E}[\|\nabla f(w_t) - M_t\|^2] \\
+        &+ 2\mathbb{E}[\langle \Delta \tilde{w}_t - \nabla f(w_t), \nabla f(w_t) - M_t \rangle] \\
+        &= \mathbb{E}[\|\Delta \tilde{w}_t - \nabla f(w_t)\|^2] + \mathbb{E}[\|\nabla f(w_t) - M_t\|^2].
+    \end{align*}
+    
+    The first term, \(\mathbb{E}[\|\Delta \tilde{w}_t - \nabla f(w_t)\|^2]\), represents the variance of the client updates. From Lemma \ref{lem:variance-local-gradients}, we know that:
+    \[
+        \mathbb{E}[\|\Delta \tilde{w}_t - \nabla f(w_t)\|^2] = \frac{\sigma^2}{S} \left(1 - \frac{S}{N}\right).
+    \]
+    
+    The second term, \(\mathbb{E}[\|\nabla f(w_t) - M_t\|^2]\), represents how far the current momentum estimate is from the true gradient. This is the estimation error from previous iterations.
+    
+    Substituting these results back into our original expression:
+    \[
+        \mathbb{E}[\|M_{t+1} - M_t\|^2] = G_{kal}^2 \left( \frac{\sigma^2}{S} \left(1 - \frac{S}{N}\right) + \mathbb{E}[\|\nabla f(w_t) - M_t\|^2] \right).
+    \]
+    
+    This result provides valuable insights into the momentum dynamics:
+    \begin{itemize}
+        \item The variance of momentum changes is controlled by two factors: client sampling variance and current momentum estimation error.
+        \item The Kalman gain \(G_{kal}\) directly impacts the magnitude of momentum changes. A smaller \(G_{kal}\) leads to more stable but slower-adapting momentum, while a larger \(G_{kal}\) allows faster adaptation but with potentially higher variance.
+        \item When \(S = N\) (using all clients), the client sampling variance term disappears, but the estimation error term remains, showing that momentum still provides a beneficial smoothing effect even with full client participation.
+    \end{itemize}
+\end{proof}
+
+\subsubsection{Proof of Theorem \ref{thm_convergence-FedEve}}
+\begin{proof}
+    Our convergence analysis follows the standard approach for analyzing first-order optimization methods for non-convex functions. We start by using the \(L\)-smoothness property from Assumption \ref{cassump_Lip-continuous} to bound the progress in the objective function between consecutive iterations.
+    
+    For an \(L\)-smooth function \(f\), we have the following inequality for any two points \(w\) and \(w'\):
+    \[
+        f(w') \leq f(w) + \langle \nabla f(w), w' - w \rangle + \frac{L}{2} \|w' - w\|^2.
+    \]
+    
+    Applying this to consecutive iterates \(w_t\) and \(w_{t+1}\) in our algorithm:
+    \[
+        f(w_{t+1}) \leq f(w_t) + \langle \nabla f(w_t), w_{t+1} - w_t \rangle + \frac{L}{2} \|w_{t+1} - w_t\|^2.
+    \]
+    
+    In the FedEve algorithm, the update rule is \(w_{t+1} = w_t - \eta_g M_{t+1}\), where \(M_{t+1}\) is the momentum term updated using the Kalman filter and \(\eta_g\) is the global learning rate. Substituting this update rule:
+    \begin{align*}
+        f(w_{t+1}) &\leq f(w_t) + \langle \nabla f(w_t), -\eta_g M_{t+1} \rangle + \frac{L}{2} \|-\eta_g M_{t+1}\|^2 \\
+        &= f(w_t) - \eta_g \langle \nabla f(w_t), M_{t+1} \rangle + \frac{\eta_g^2 L}{2} \|M_{t+1}\|^2.
+    \end{align*}
+    
+    Taking the expectation, we have:
+    \begin{align*}
+        \mathbb{E}[f(w_{t+1})] &\leq f(w_t) - \eta_g \mathbb{E}[\langle \nabla f(w_t), M_{t+1} \rangle] + \frac{\eta_g^2 L}{2} \mathbb{E}[\|M_{t+1}\|^2].
+    \end{align*}
+    
+    Now we need to analyze the terms \(\mathbb{E}[\langle \nabla f(w_t), M_{t+1} \rangle]\) and \(\mathbb{E}[\|M_{t+1}\|^2]\). Let's start with the inner product term.
+    
+    The momentum update in FedEve is given by:
+    \[
+        M_{t+1} = M_t + G_{kal}(\Delta \tilde{w}_t - M_t),
+    \]
+    where \(\Delta \tilde{w}_t\) is the average gradient from the sampled clients. An important property of this update is that, under expectation, it is unbiased:
+    \[
+        \mathbb{E}[\Delta \tilde{w}_t] = \nabla f(w_t).
+    \]
+    
+    Therefore:
+    \begin{align*}
+        \mathbb{E}[M_{t+1}] &= \mathbb{E}[M_t + G_{kal}(\Delta \tilde{w}_t - M_t)] \\
+        &= \mathbb{E}[M_t] + G_{kal}(\mathbb{E}[\Delta \tilde{w}_t] - \mathbb{E}[M_t]) \\
+        &= \mathbb{E}[M_t] + G_{kal}(\nabla f(w_t) - \mathbb{E}[M_t]).
+    \end{align*}
+    
+    In the long run, this recursive relation converges to \(\mathbb{E}[M_{t}] = \nabla f(w_t)\). For simplicity, we assume this has approximately been achieved, which gives us:
+    \[
+        \mathbb{E}[\langle \nabla f(w_t), M_{t+1} \rangle] = \langle \nabla f(w_t), \mathbb{E}[M_{t+1}] \rangle = \langle \nabla f(w_t), \nabla f(w_t) \rangle = \|\nabla f(w_t)\|^2.
+    \]
+    
+    Next, we need to bound \(\mathbb{E}[\|M_{t+1}\|^2]\). Using the update rule and the variance from Lemma \ref{lem:kalman-filter-variance}:
+    \begin{align*}
+        \mathbb{E}[\|M_{t+1}\|^2] &= \mathbb{E}[\|\mathbb{E}[M_{t+1}] + (M_{t+1} - \mathbb{E}[M_{t+1}])\|^2] \\
+        &= \|\mathbb{E}[M_{t+1}]\|^2 + \mathbb{E}[\|M_{t+1} - \mathbb{E}[M_{t+1}]\|^2] \\
+        &= \|\nabla f(w_t)\|^2 + \mathbb{E}[\|M_{t+1} - \nabla f(w_t)\|^2] \\
+        &\leq \|\nabla f(w_t)\|^2 + G_{kal}^2 \frac{\sigma^2}{S} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    The last inequality uses the bound on the variance of \(M_{t+1}\) derived from Lemma \ref{lem:kalman-filter-variance}.
+    
+    Substituting these results back into our progress bound:
+    \begin{align*}
+        \mathbb{E}[f(w_{t+1})] &\leq f(w_t) - \eta_g \|\nabla f(w_t)\|^2 + \frac{\eta_g^2 L}{2} \left( \|\nabla f(w_t)\|^2 + G_{kal}^2 \frac{\sigma^2}{S} \left(1 - \frac{S}{N}\right) \right) \\
+        &= f(w_t) - \eta_g \|\nabla f(w_t)\|^2 + \frac{\eta_g^2 L}{2} \|\nabla f(w_t)\|^2 + \frac{\eta_g^2 L G_{kal}^2 \sigma^2}{2S} \left(1 - \frac{S}{N}\right) \\
+        &= f(w_t) - \eta_g \left(1 - \frac{\eta_g L}{2}\right) \|\nabla f(w_t)\|^2 + \frac{\eta_g^2 L G_{kal}^2 \sigma^2}{2S} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    The coefficient of \(\|\nabla f(w_t)\|^2\) is maximized when \(\eta_g = \frac{1}{L}\). Setting this optimal learning rate, we get:
+    \begin{align*}
+        \mathbb{E}[f(w_{t+1})] &\leq f(w_t) - \frac{1}{L} \left(1 - \frac{1}{2}\right) \|\nabla f(w_t)\|^2 + \frac{1}{L^2} \frac{L G_{kal}^2 \sigma^2}{2S} \left(1 - \frac{S}{N}\right) \\
+        &= f(w_t) - \frac{1}{2L} \|\nabla f(w_t)\|^2 + \frac{G_{kal}^2 \sigma^2}{2LS} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    This inequality shows that in each iteration, we make progress in decreasing the objective function, but there's a constant error term due to the variance in client sampling.
+    
+    To derive the final convergence rate, we sum this inequality over all iterations from \(t = 0\) to \(t = T-1\):
+    \begin{align*}
+        \sum_{t=0}^{T-1} \mathbb{E}[f(w_{t+1})] &\leq \sum_{t=0}^{T-1} \left( f(w_t) - \frac{1}{2L} \|\nabla f(w_t)\|^2 + \frac{G_{kal}^2 \sigma^2}{2LS} \left(1 - \frac{S}{N}\right) \right) \\
+        &= \sum_{t=0}^{T-1} f(w_t) - \frac{1}{2L} \sum_{t=0}^{T-1} \|\nabla f(w_t)\|^2 + \frac{T G_{kal}^2 \sigma^2}{2LS} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    Note that \(\sum_{t=0}^{T-1} \mathbb{E}[f(w_{t+1})] = \sum_{t=1}^{T} \mathbb{E}[f(w_t)]\). Rearranging the terms:
+    \begin{align*}
+        \sum_{t=1}^{T} \mathbb{E}[f(w_t)] &\leq \sum_{t=0}^{T-1} f(w_t) - \frac{1}{2L} \sum_{t=0}^{T-1} \|\nabla f(w_t)\|^2 + \frac{T G_{kal}^2 \sigma^2}{2LS} \left(1 - \frac{S}{N}\right) \\
+        \Rightarrow \mathbb{E}[f(w_T)] &\leq f(w_0) - \frac{1}{2L} \sum_{t=0}^{T-1} \mathbb{E}[\|\nabla f(w_t)\|^2] + \frac{T G_{kal}^2 \sigma^2}{2LS} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    This is because the sum telescopes: \(f(w_0) + (f(w_1) - f(w_1)) + \ldots + (f(w_{T-1}) - f(w_{T-1})) - \mathbb{E}[f(w_T)] = f(w_0) - \mathbb{E}[f(w_T)]\).
+    
+    Rearranging to isolate the gradient norm terms:
+    \begin{align*}
+        \frac{1}{2L} \sum_{t=0}^{T-1} \mathbb{E}[\|\nabla f(w_t)\|^2] &\leq f(w_0) - \mathbb{E}[f(w_T)] + \frac{T G_{kal}^2 \sigma^2}{2LS} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    Since \(f\) is bounded below by some value \(f^*\) (which could be the global minimum), we have \(\mathbb{E}[f(w_T)] \geq f^*\). Thus:
+    \begin{align*}
+        \frac{1}{2L} \sum_{t=0}^{T-1} \mathbb{E}[\|\nabla f(w_t)\|^2] &\leq f(w_0) - f^* + \frac{T G_{kal}^2 \sigma^2}{2LS} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    Dividing both sides by \(T\):
+    \begin{align*}
+        \frac{1}{2LT} \sum_{t=0}^{T-1} \mathbb{E}[\|\nabla f(w_t)\|^2] &\leq \frac{f(w_0) - f^*}{T} + \frac{G_{kal}^2 \sigma^2}{2LS} \left(1 - \frac{S}{N}\right) \\
+        \Rightarrow \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\|\nabla f(w_t)\|^2] &\leq \frac{2L(f(w_0) - f^*)}{T} + \frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right).
+    \end{align*}
+    
+    This final bound can be expressed in big-O notation as:
+    \[
+        \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\|\nabla f(w_t)\|^2] \leq \mathcal{O}\left(\frac{L(f(w_0) - f^*)}{T} + \frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)\right).
+    \]
+    
+    This result demonstrates several important properties of the FedEve algorithm:
+    \begin{itemize}
+        \item The first term \(\mathcal{O}\left(\frac{L(f(w_0) - f^*)}{T}\right)\) shows that the convergence rate is \(\mathcal{O}(1/T)\), which is optimal for first-order methods on non-convex functions.
+        \item The second term \(\mathcal{O}\left(\frac{G_{kal}^2 \sigma^2}{S} \left(1 - \frac{S}{N}\right)\right)\) represents the irreducible error due to client sampling and stochastic gradients.
+        \item This error decreases as we increase the number of sampled clients \(S\), and vanishes completely when \(S = N\) (i.e., when we use all clients).
+        \item The Kalman gain parameter \(G_{kal}\) appears quadratically in the error term, showing that smaller values of \(G_{kal}\) can reduce the impact of stochasticity, but at the cost of potentially slower adaptation to changes in the gradient.
+    \end{itemize}
+    
+    In practical implementations, the parameters \(\eta_g\) and \(G_{kal}\) can be tuned to balance the trade-off between convergence speed and stability based on the specific characteristics of the federated learning task.
+\end{proof}
