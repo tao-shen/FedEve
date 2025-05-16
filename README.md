@@ -27,7 +27,7 @@ FedEve is based on a predict-observe framework that:
 3. Employs a Bayesian filter to integrate prediction and observation
 4. Adaptively determines the interpolation coefficient based on the variance of both drifts
 
-![Framework Illustration](static/images/paper/illustration.png)
+![Framework Illustration](static/images/paper/illustration_hq.png)
 
 ### Key Advantages
 
