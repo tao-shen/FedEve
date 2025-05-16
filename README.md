@@ -1,53 +1,65 @@
-# Academic Project Page Template
-This is an academic paper project page template.
+# FedEve: On Bridging the Client Drift and Period Drift for Cross-device Federated Learning
 
+## Overview
 
-Example project pages built using this template are:
-- https://horwitz.ai/probex
-- https://vision.huji.ac.il/probegen
-- https://horwitz.ai/mother
-- https://horwitz.ai/spectral_detuning
-- https://vision.huji.ac.il/ladeda
-- https://vision.huji.ac.il/dsire
-- https://horwitz.ai/podd
-- https://dreamix-video-editing.github.io
-- https://horwitz.ai/conffusion
-- https://horwitz.ai/3d_ads/
-- https://vision.huji.ac.il/ssrl_ad
-- https://vision.huji.ac.il/deepsim
+FedEve is a novel approach for cross-device federated learning that addresses two key challenges: client drift and period drift. Our method uses a predict-observe framework with Bayesian filtering to allow these two types of drift to compensate for each other, leading to improved convergence and performance.
 
+[Project Website](https://tao-shen.github.io/fedeve/) | [Paper](https://tao-shen.github.io/fedeve/static/pdfs/fedeve.pdf) | [GitHub](https://github.com/tao-shen/fedeve)
 
+![Period Drift Animation](static/images/paper/period_drift_animation_best.gif)
 
-## Start using the template
-To start using the template click on `Use this Template`.
+## Key Concepts
 
-The template uses html for controlling the content and css for controlling the style. 
-To edit the websites contents edit the `index.html` file. It contains different HTML "building blocks", use whichever ones you need and comment out the rest.  
+### Client Drift and Period Drift
 
-**IMPORTANT!** Make sure to replace the `favicon.ico` under `static/images/` with one of your own, otherwise your favicon is going to be a dreambooth image of me.
+In federated learning, two significant challenges arise from data heterogeneity:
 
-## Components
-- Teaser video
-- Images Carousel
-- Youtube embedding
-- Video Carousel
-- PDF Poster
-- Bibtex citation
+- **Client Drift**: When clients perform multiple local updates, they can drift too far towards their local objectives, diverging from the shared optimization direction.
 
-## Tips:
-- The `index.html` file contains comments instructing you what to replace, you should follow these comments.
-- The `meta` tags in the `index.html` file are used to provide metadata about your paper 
-(e.g. helping search engine index the website, showing a preview image when sharing the website, etc.)
-- The resolution of images and videos can usually be around 1920-2048, there rarely a need for better resolution that take longer to load. 
-- All the images and videos you use should be compressed to allow for fast loading of the website (and thus better indexing by search engines). For images, you can use [TinyPNG](https://tinypng.com), for videos you can need to find the tradeoff between size and quality.
-- When using large video files (larger than 10MB), it's better to use youtube for hosting the video as serving the video from the website can take time.
-- Using a tracker can help you analyze the traffic and see where users came from. [statcounter](https://statcounter.com) is a free, easy to use tracker that takes under 5 minutes to set up. 
-- This project page can also be made into a github pages website.
-- Replace the favicon to one of your choosing (the default one is of the Hebrew University). 
-- Suggestions, improvements and comments are welcome, simply open an issue or contact me. You can find my contact information at [https://horwitz.ai](https://horwitz.ai)
+- **Period Drift**: Due to partial client participation in cross-device FL, the participating clients in each round may represent a data distribution different from the overall client population. This drift can be particularly harmful as data heterogeneity increases.
 
-## Acknowledgments
-Parts of this project page were adopted from the [Nerfies](https://nerfies.github.io/) page.
+## The FedEve Method
 
-## Website License
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+FedEve is based on a predict-observe framework that:
+
+1. Uses Nesterov momentum as a prediction function on the server side
+2. Treats client updates as observations of the global update direction
+3. Employs a Bayesian filter to integrate prediction and observation
+4. Adaptively determines the interpolation coefficient based on the variance of both drifts
+
+![Framework Illustration](static/images/paper/illustration.png)
+
+### Key Advantages
+
+- Reduces the variance of model updates
+- Requires no additional client storage or extra communication costs
+- Introduces no additional hyperparameters to tune
+- Outperforms alternatives on non-IID data in cross-device settings
+
+## Research Contributions
+
+1. Analysis of the impact of period drift and client drift in cross-device FL
+2. A novel predict-observe framework incorporating a Bayesian filter to integrate server and client optimizations
+3. The FedEve algorithm that combines prediction and observation through adaptive linear interpolation
+4. Theoretical evidence and extensive empirical validation of our approach
+
+## Citation
+
+If you find this work useful for your research, please consider citing our paper:
+
+```bibtex
+@article{fedeve2023,
+  title={FedEve: On Bridging the Client Drift and Period Drift for Cross-device Federated Learning},
+  author={Shen, Tao and Li, Zexi and Zhu, Didi and Zhao, Ziyu and Wu, Chao and Wu, Fei},
+  journal={arXiv preprint},
+  year={2023}
+}
+```
+
+## License
+
+[MIT License](LICENSE)
+
+## Contact
+
+For questions or collaboration opportunities, please contact [author email].
